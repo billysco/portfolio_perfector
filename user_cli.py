@@ -28,3 +28,13 @@ def run():
 
 if __name__ == "__main__":
     fire.Fire(run)
+
+
+# add in age, desired retirement age, current savings, current income, current monthly expenses
+# risk tolerance
+# 100-x for portfolio allocation (factor in real estate and crypto)
+# Would you  like to select your own risk level or pre calculated
+# Warning for bad portfolio selection
+# modules 4 and 5
+# save csv data at the end
+# add .csv file at the end to save csv data
