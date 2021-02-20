@@ -1,17 +1,24 @@
 import fire
 import questionary
 import pandas as pd
+import csv
+from pathlib import Path
 
-# Create main function
+
+user_info = []
+
+# Create function to get user's information and goals for retirement
 def calculate_goals():
     """Calculates how much money the user will need for retirement and how much they will need to save per year"""
     # print a welcome message
     print('Congratulations on taking the first step toward planning your retirement')
+    # get user's current age
+    current_age = questionary.text("How old are you?").ask()
     # get user's desired income and store it as a variable
     monthly_retirement_income = questionary.text("What's your desired yearly income in retirement").ask()
     # get user's desired retirement age and store it as a variable
     retirement_age = questionary.text('What age would you like to retire?').ask()
-    # get user's current retirement savings
+    # get user's current retirement savings 
     current_savings = questionary.text('How much money do you currently have saved for retirement').ask()
     # calculate how much money the user needs to retire
     retirement_goal = (100 - float(retirement_age))*float(monthly_retirement_income) - float(current_savings)
@@ -20,6 +27,27 @@ def calculate_goals():
         print('Congratulations! You already have enough money saved to reach your financial goals.')
     else:
         print(f"You will need ${retirement_goal} more in savings to reach your financial goal for retirement")
+    # store client info in a list
+    user_info.append(current_age)
+    user_info.append(monthly_retirement_income)
+    user_info.append(retirement_age)
+    user_info.append(current_savings)
+    user_info.append(retirement_goal)
+
+
+
+def save_user_info(user_info):
+    """Save the user information for use in Jupyter lab portion of application.
+
+    Args:
+        user_info (list): The user's information, gathered from the questions above
+    """
+    header = ['current_age','monthly_retirement_income','retirement_age','current_savings','retirement_goal']
+    output_path = Path("user_info.csv")
+    with open(output_path,'w',newline='') as csvfile:
+        csvwriter = csv.writer(csvfile)
+        csvwriter.writerow(header)
+        csvwriter.writerows(user_info)
 
 # run the program
 def run():
