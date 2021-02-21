@@ -22,14 +22,14 @@ def calculate_goals():
     # calculate how much money the user needs to retire
     retirement_goal = (100 - float(retirement_age))*float(monthly_retirement_income) - float(current_savings)
     # store client info in a list
-    info = [current_age,monthly_retirement_income,retirement_age,current_savings,retirement_goal]
-    for x in info:
-        user_info.append(str(x))
-    # user_info.append(current_age)
-    # user_info.append(monthly_retirement_income)
-    # user_info.append(retirement_age)
-    # user_info.append(current_savings)
-    # user_info.append(retirement_goal)
+    # info = [current_age,monthly_retirement_income,retirement_age,current_savings,retirement_goal]
+    # for x in info:
+    #     user_info.append(str(x))
+    user_info.append(str(current_age))
+    user_info.append(str(monthly_retirement_income))
+    user_info.append(str(retirement_age))
+    user_info.append(str(current_savings))
+    user_info.append(str(retirement_goal)) 
     # calculate if the user has enough money to retire 
     if retirement_goal <= float(current_savings):
         print('Congratulations! You already have enough money saved to reach your financial goals.')
@@ -39,7 +39,19 @@ def calculate_goals():
 
 print(user_info)
 
-# def 
+
+def get_investment_preferences():
+    """Get the user's investment preferences"""
+    # ask the user if they want to pick their own allocation
+    allocation = questionary.confirm('Do you want to pick your own investment allocations?').ask()
+    if allocation:
+        self_allocation_pct = questionary.text("""Please select the amount of your portfolio to allocate
+        to bonds, stocks, and cryptocurrency. Please format your response like the following [.bonds,.stocks,.cryptocurrency]""").ask()
+    else:
+        allocation_pct = 100-current_age
+    
+
+
 
 
 def save_user_info(user_info):

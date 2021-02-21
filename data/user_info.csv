@@ -1,6 +1,2 @@
-current_age,monthly_retirement_income,retirement_age,current_savings,retirement_goal
-5,0
-6,0,0,0,0
-6,0
-5,0,0,0,0,0
-1,9,0,0,0,0,0,.,0
+current_age,yearly_retirement_income,retirement_age,current_savings,retirement_goal,portfolio_allocation
+23,50000,50,500000,2000000,"['.1', '.5', '.6']"
