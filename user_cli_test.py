@@ -3,6 +3,7 @@ import questionary
 import pandas as pd
 import csv
 from pathlib import Path
+import sqlalchemy as sql
 
 # user_info = []
 
@@ -58,3 +59,13 @@ with open(output_path,'w',newline='') as csvfile:
     csvwriter = csv.writer(csvfile)
     csvwriter.writerow(header)
     csvwriter.writerow(info)
+
+
+database_connection_string = 'sqlite:///'
+
+engine = sql.create_engine(database_connection_string)
+
+engine.table_names()
+
+user_data_df = pd.DataFrame([current_age,yearly_retirement_income,retirement_age,current_savings,retirement_goal,portfolio_allocation])
+user_data_df.to_sql('info',engine)
