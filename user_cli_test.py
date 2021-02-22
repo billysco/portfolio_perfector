@@ -54,18 +54,18 @@ else:
 info = [int(current_age),int(yearly_retirement_income),int(retirement_age),int(current_savings),int(retirement_goal),portfolio_allocation]
 
 header = ['current_age','yearly_retirement_income','retirement_age','current_savings','retirement_goal','portfolio_allocation']
-output_path = Path("data/user_info.csv")
+output_path = Path("data/user_info.db")
 with open(output_path,'w',newline='') as csvfile:
     csvwriter = csv.writer(csvfile)
     csvwriter.writerow(header)
     csvwriter.writerow(info)
 
 
-database_connection_string = 'sqlite:///'
+# database_connection_string = 'sqlite:///'
 
-engine = sql.create_engine(database_connection_string)
+# engine = sql.create_engine(database_connection_string)
 
-engine.table_names()
+# engine.table_names()
 
-user_data_df = pd.DataFrame([current_age,yearly_retirement_income,retirement_age,current_savings,retirement_goal,portfolio_allocation])
-user_data_df.to_sql('info',engine)
+# user_data_df = pd.DataFrame([current_age,yearly_retirement_income,retirement_age,current_savings,retirement_goal,portfolio_allocation])
+# user_data_df.to_sql('info',engine)
