@@ -1,0 +1,32 @@
+Large company stocks:
+'AAPL'
+'MSFT'
+'AMZN'
+'FB'
+'TSLA'
+'GOOGL'
+
+Medium company stocks:
+'GNRC'
+'SEDG'
+'PENN'
+'CZR'
+'TECH'
+'CGNX'
+
+Small company stocks:
+'XSTLA'
+'CLF'
+'MSTR'
+'NEO'
+'DDD'
+'OMCL'
+
+
+International Stocks:
+'TCEHY'
+'BABA'
+'TSM'
+'SSNLF'
+'NSRGY'
+'ASML'
