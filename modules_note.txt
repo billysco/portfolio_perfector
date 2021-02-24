@@ -4,4 +4,4 @@ Modules for integration:
 
 installations (terminal):
 -pip install pyfolio
--pip install fastquant
+-!pip install fastquant
