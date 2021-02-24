@@ -1,0 +1,7 @@
+Modules for integration:
+-Pyfolio
+-Fastquant
+
+installations (terminal):
+-pip install pyfolio
+-pip install fastquant
