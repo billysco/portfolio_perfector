@@ -19,13 +19,6 @@ current_savings = questionary.text('How much money do you currently have saved f
 # calculate how much money the user needs to retire
 retirement_goal = (100 - float(retirement_age))*float(yearly_retirement_income) - float(current_savings)
 
-# allocation = questionary.confirm('Do you want to pick your own investment allocations?').ask()
-# if allocation:
-#     self_allocation_pct = questionary.text("""Please select the amount of your portfolio to allocate
-#     to bonds, stocks, and cryptocurrency. Please format your response like the following [.bonds,.stocks,.cryptocurrency]""").ask()
-# else:
-#     allocation_pct = 100-current_age
-
 # determining allocation percentage, formatted as [.bonds,.stocks,.cryptocurrency]
 if int(current_age) <= 30:
     allocation_pct = [0.0,0.7,0.3]
@@ -59,6 +52,7 @@ with open(output_path,'w',newline='') as csvfile:
     csvwriter = csv.writer(csvfile)
     csvwriter.writerow(header)
     csvwriter.writerow(info)
+
 
 
 # database_connection_string = 'sqlite:///'
