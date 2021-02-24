@@ -1,6 +1,7 @@
 Modules for integration:
 -Pyfolio
 -Fastquant
+-fbprophet?
 
 installations (terminal):
 -pip install pyfolio
