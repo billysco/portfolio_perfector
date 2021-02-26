@@ -59,13 +59,13 @@ else:
 # store client info in a list THIS IS USED FOR PRETTY MUCH EVERYTHING GOING FORWARD
 info = [int(current_age),int(yearly_retirement_income),int(retirement_age),int(current_savings),int(retirement_goal),portfolio_allocation]
 
-header = ['current_age','yearly_retirement_income','retirement_age','current_savings','retirement_goal','portfolio_allocation']
-output_path = Path("data/info.csv")
-with open(output_path,'w',newline='') as csvfile:
-    csvwriter = csv.writer(csvfile)
-    csvwriter.writerow(header)
-    csvwriter.writerow(info)
-
+# header = ['current_age','yearly_retirement_income','retirement_age','current_savings','retirement_goal','portfolio_allocation']
+# output_path = Path("data/info.csv")
+# with open(output_path,'w',newline='') as csvfile:
+#     csvwriter = csv.writer(csvfile)
+#     csvwriter.writerow(header)
+#     csvwriter.writerow(info)
+ 
 
 # Set response URLs
 btc_url = "https://api.alternative.me/v2/ticker/Bitcoin/?convert=USD"
@@ -91,37 +91,45 @@ timeframe = '1D'
 # Format current date as ISO format
 # Set both the start and end date at the date of your prior weekday 
 # This will give you the closing price of the previous trading day
-start_date = pd.Timestamp('2016-02-19',tz='America/New_York').isoformat() # TODO update date
-end_date = pd.Timestamp('2021-02-19',tz='America/New_York').isoformat() # TODO to update date
+start_date = pd.Timestamp('2016-02-25',tz='America/New_York').isoformat() # TODO update date
+end_date = pd.Timestamp('2021-02-25',tz='America/New_York').isoformat() # TODO to update date
 
-age = info['current_age']
+age = info[0]
 
-info.loc[:,'portfolio_allocation'] = info.loc[:,'portfolio_allocation'].str.replace("'","")
-portfolio_allocation = str(info['portfolio_allocation'])
+# Use the Alpaca get_barset function to get current closing prices the portfolio
+# Be sure to set the `df` property after the function to format the response object as a DataFrame
+prices_df = alpaca.get_barset(tickers,timeframe,start=start_date,end=end_date).df
+
+# info.loc[:,'portfolio_allocation'] = info.loc[:,'portfolio_allocation'].str.replace("'","")
+# portfolio_allocation = str(info['portfolio_allocation'])
 
 # Calculate the % of the portfolio that will be allocated to bonds
-if portfolio_allocation == '0    [0.0, 0.7, 0.3]' or '0    [0.2,0.6,0.2]' or '0    [0.4,0.4,0.2]' or '0    [0.5,0.4,0.1]' or '0    [0.7,0.2,0.1]':
-    percent_bonds = portfolio_allocation[7:9]
-else:
-    percent_bonds = portfolio_allocation[6:8]
+# if portfolio_allocation == '0    [0.0, 0.7, 0.3]' or '0    [0.2,0.6,0.2]' or '0    [0.4,0.4,0.2]' or '0    [0.5,0.4,0.1]' or '0    [0.7,0.2,0.1]':
+#     percent_bonds = portfolio_allocation[7:9]
+# else:
+#     percent_bonds = portfolio_allocation[6:8]
 
-# Calculate the % of the portfolio that will be allocated to stocks 
-if portfolio_allocation == '0    [0.0, 0.7, 0.3]' or '0    [0.2,0.6,0.2]' or '0    [0.4,0.4,0.2]' or '0    [0.5,0.4,0.1]' or '0    [0.7,0.2,0.1]':
-    percent_stocks = portfolio_allocation[12:14]
-else:
-    percent_stocks = portfolio_allocation[10:12]
+# # Calculate the % of the portfolio that will be allocated to stocks 
+# if portfolio_allocation == '0    [0.0, 0.7, 0.3]' or '0    [0.2,0.6,0.2]' or '0    [0.4,0.4,0.2]' or '0    [0.5,0.4,0.1]' or '0    [0.7,0.2,0.1]':
+#     percent_stocks = portfolio_allocation[12:14]
+# else:
+#     percent_stocks = portfolio_allocation[10:12]
 
-# Calculate the % of the portfolio that will be allocated to crypto
-if portfolio_allocation == '0    [0.0, 0.7, 0.3]' or '0    [0.2,0.6,0.2]' or '0    [0.4,0.4,0.2]' or '0    [0.5,0.4,0.1]' or '0    [0.7,0.2,0.1]':
-    percent_crypto = portfolio_allocation[17:19]
-else:
-    percent_crypto = portfolio_allocation[14:16]
+# # Calculate the % of the portfolio that will be allocated to crypto
+# if portfolio_allocation == '0    [0.0, 0.7, 0.3]' or '0    [0.2,0.6,0.2]' or '0    [0.4,0.4,0.2]' or '0    [0.5,0.4,0.1]' or '0    [0.7,0.2,0.1]':
+#     percent_crypto = portfolio_allocation[17:19]
+# else:
+#     percent_crypto = portfolio_allocation[14:16]
 
-stock_amt = float(percent_stocks)*info['current_savings']
+percent_stocks = portfolio_allocation[1]
+percent_bonds = portfolio_allocation[0]
+percent_crypto = portfolio_allocation[2]
 
-btc_amt = float(percent_crypto)*(info['current_savings'])
+stock_amt = percent_stocks*info[3]
 
-bond_amt = float(percent_bonds)*(info['current_savings'])
+btc_amt = percent_crypto*info[3]
+
+bond_amt = percent_bonds *info[3]
 
 
 if float(stock_amt) > 0:
@@ -136,13 +144,23 @@ else:
 
 portfolio_weights = [bond_weight,stock_weight]
 
-MC_sim = (MCSimulation(portfolio_data=prices_df,weights=portfolio_weights,num_simulation=100,num_trading_days=252*30))
+MC_sim = (MCSimulation(portfolio_data=prices_df,weights=portfolio_weights,num_simulation=100,num_trading_days=252*1))
 
 MC_sim.calc_cumulative_return()
 
 cumulative_returns = MC_sim.summarize_cumulative_return()
 
-mean_return = cumulative_returns['mean']
+mean_return = cumulative_returns['mean']/30
+# print(mean_return)
+
+years_to_retirement = float(retirement_age)-float(current_age)
+# print(years_to_retirement)
+
+pv_retirement_goal = retirement_goal/(1+mean_return)**years_to_retirement
+# print(pv_retirement_goal)
+
+yearly_input = pv_retirement_goal/years_to_retirement
+# print(yearly_input)
 
 std_dev = cumulative_returns['std']
 
@@ -178,7 +196,8 @@ portfolio_sharpe_ratio = (stock_weight*stock_sharpe_ratio)+(bond_weight*bond_sha
 
 btc_owned = btc_price/btc_amt
 
-
+print(f"""In order to retire in {int(retirement_age)-int(current_age)} years, you will need an additional ${retirement_goal}. Your portfolio is expected to return {mean_return:.2f}
+every year.  Given this expected return, you will need to contribute {yearly_input:.2f} every year in order to retire on time.""")
 
 
 
