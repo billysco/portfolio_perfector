@@ -45,7 +45,7 @@ else:
     allocation_pct = [0.7,0.2,0.1]
 
 allocation = questionary.confirm(f"""Your recommended portfolio allocation percentage is {allocation_pct} ([%bonds,%stocks,%cryptocurrency]). 
-    Would you like to accept this allocation or pick your own portfolio allocation?""").ask()
+    Would you like to accept this allocation? If not, you can pick your own portfolio allocation?""").ask()
 if allocation:
     portfolio_allocation = allocation_pct
 else:
@@ -59,6 +59,7 @@ else:
 # store client info in a list THIS IS USED FOR PRETTY MUCH EVERYTHING GOING FORWARD
 info = [int(current_age),int(yearly_retirement_income),int(retirement_age),int(current_savings),int(retirement_goal),portfolio_allocation]
 
+# Optional: export the client info to a csv file
 # header = ['current_age','yearly_retirement_income','retirement_age','current_savings','retirement_goal','portfolio_allocation']
 # output_path = Path("data/info.csv")
 # with open(output_path,'w',newline='') as csvfile:
@@ -76,6 +77,7 @@ btc_response = requests.get(btc_url).json()
 # Navigate the BTC response object to access the current price of BTC
 btc_price = btc_response['data']['1']['quotes']['USD']['price']
 
+# Set alpaca API key
 alpaca_api_key = os.getenv('ALPACA_API_KEY')
 alpaca_secret_key = os.getenv('ALPACA_SECRET_KEY')
 
@@ -94,37 +96,19 @@ timeframe = '1D'
 start_date = pd.Timestamp('2016-02-25',tz='America/New_York').isoformat() # TODO update date
 end_date = pd.Timestamp('2021-02-25',tz='America/New_York').isoformat() # TODO to update date
 
+# Set client age
 age = info[0]
 
 # Use the Alpaca get_barset function to get current closing prices the portfolio
 # Be sure to set the `df` property after the function to format the response object as a DataFrame
 prices_df = alpaca.get_barset(tickers,timeframe,start=start_date,end=end_date).df
 
-# info.loc[:,'portfolio_allocation'] = info.loc[:,'portfolio_allocation'].str.replace("'","")
-# portfolio_allocation = str(info['portfolio_allocation'])
-
-# Calculate the % of the portfolio that will be allocated to bonds
-# if portfolio_allocation == '0    [0.0, 0.7, 0.3]' or '0    [0.2,0.6,0.2]' or '0    [0.4,0.4,0.2]' or '0    [0.5,0.4,0.1]' or '0    [0.7,0.2,0.1]':
-#     percent_bonds = portfolio_allocation[7:9]
-# else:
-#     percent_bonds = portfolio_allocation[6:8]
-
-# # Calculate the % of the portfolio that will be allocated to stocks 
-# if portfolio_allocation == '0    [0.0, 0.7, 0.3]' or '0    [0.2,0.6,0.2]' or '0    [0.4,0.4,0.2]' or '0    [0.5,0.4,0.1]' or '0    [0.7,0.2,0.1]':
-#     percent_stocks = portfolio_allocation[12:14]
-# else:
-#     percent_stocks = portfolio_allocation[10:12]
-
-# # Calculate the % of the portfolio that will be allocated to crypto
-# if portfolio_allocation == '0    [0.0, 0.7, 0.3]' or '0    [0.2,0.6,0.2]' or '0    [0.4,0.4,0.2]' or '0    [0.5,0.4,0.1]' or '0    [0.7,0.2,0.1]':
-#     percent_crypto = portfolio_allocation[17:19]
-# else:
-#     percent_crypto = portfolio_allocation[14:16]
-
+# Set the portfolio allocation %s from the client data provided
 percent_stocks = portfolio_allocation[1]
 percent_bonds = portfolio_allocation[0]
 percent_crypto = portfolio_allocation[2]
 
+# Calculate the amount of money the client has in stocks, bonds, and cryptocurrency
 stock_amt = percent_stocks*info[3]
 
 btc_amt = percent_crypto*info[3]
@@ -132,6 +116,7 @@ btc_amt = percent_crypto*info[3]
 bond_amt = percent_bonds *info[3]
 
 
+# Determine what percent of the client's stock/bond portfolio is in stocks and how much is in bonds
 if float(stock_amt) > 0:
     stock_weight = (float(stock_amt)+float(bond_amt))/float(stock_amt)
 else:
@@ -142,23 +127,32 @@ if float(bond_amt) > 0:
 else:
     bond_weight = 0
 
+# Set portfolio weights to be used for Monte Carlo simulation
 portfolio_weights = [bond_weight,stock_weight]
 
-MC_sim = (MCSimulation(portfolio_data=prices_df,weights=portfolio_weights,num_simulation=100,num_trading_days=252*1))
+# Set parameters for MCSim, currently set to 100 simulations over 1 year
+MC_sim = (MCSimulation(portfolio_data=prices_df,weights=portfolio_weights,num_simulation=100,num_trading_days=252))
 
+# Run the Monte Carlo
 MC_sim.calc_cumulative_return()
 
+# Get the data from the Monte Carlo simulation
 cumulative_returns = MC_sim.summarize_cumulative_return()
 
-mean_return = cumulative_returns['mean']/30
+# Set the mean return as a variable to be used in future calculations
+mean_return = cumulative_returns['mean']
 # print(mean_return)
 
+
+# Set the years until retirement return as a variable to be used in future calculations
 years_to_retirement = float(retirement_age)-float(current_age)
 # print(years_to_retirement)
 
+# Set retirement goal to get the present value of the user's retirement needs using the expected mean returns
 pv_retirement_goal = retirement_goal/(1+mean_return)**years_to_retirement
 # print(pv_retirement_goal)
 
+# Calculate the amount of money the user will need to contribute on a yearly basis
 yearly_input = pv_retirement_goal/years_to_retirement
 # print(yearly_input)
 
@@ -194,7 +188,11 @@ bond_sharpe_ratio = avg_annual_bond_returns/annualized_bond_std_dev
 
 portfolio_sharpe_ratio = (stock_weight*stock_sharpe_ratio)+(bond_weight*bond_sharpe_ratio)
 
+# Calculate the amount of BTC owned if it was purchased today
 btc_owned = btc_price/btc_amt
+
+# Set the expected return for BTC (historical data would suggest a much higher return, however we are unsure if those returns are sustainable and it would be irresponsible to include returns that high in a retirement equation)
+btc_expected_return = .25
 
 print(f"""In order to retire in {int(retirement_age)-int(current_age)} years, you will need an additional ${retirement_goal}. Your portfolio is expected to return {mean_return:.2f}
 every year.  Given this expected return, you will need to contribute {yearly_input:.2f} every year in order to retire on time.""")
