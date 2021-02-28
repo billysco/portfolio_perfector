@@ -53,19 +53,19 @@ else:
     custom_stock =  questionary.text('What percentage of your portfolio would you like to invest in stocks?').ask()
     custom_crypto = questionary.text('What percentage of your portfolio would you like to invest in cryptocurrency?').ask()
     #set the variable for custom allocation
-    portfolio_allocation = [custom_bond,custom_stock,custom_crypto]
+    portfolio_allocation = [float(custom_bond),float(custom_stock),float(custom_crypto)]
 
 
 # store client info in a list THIS IS USED FOR PRETTY MUCH EVERYTHING GOING FORWARD
 info = [int(current_age),int(yearly_retirement_income),int(retirement_age),int(current_savings),int(retirement_goal),portfolio_allocation]
 
 # Optional: export the client info to a csv file
-# header = ['current_age','yearly_retirement_income','retirement_age','current_savings','retirement_goal','portfolio_allocation']
-# output_path = Path("data/info.csv")
-# with open(output_path,'w',newline='') as csvfile:
-#     csvwriter = csv.writer(csvfile)
-#     csvwriter.writerow(header)
-#     csvwriter.writerow(info)
+header = ['current_age','yearly_retirement_income','retirement_age','current_savings','retirement_goal','portfolio_allocation']
+output_path = Path("data/info.csv")
+with open(output_path,'w',newline='') as csvfile:
+    csvwriter = csv.writer(csvfile)
+    csvwriter.writerow(header)
+    csvwriter.writerow(info)
  
 
 # Set response URLs
@@ -105,8 +105,11 @@ prices_df = alpaca.get_barset(tickers,timeframe,start=start_date,end=end_date).d
 
 # Set the portfolio allocation %s from the client data provided
 percent_stocks = portfolio_allocation[1]
+# print(percent_stocks)
 percent_bonds = portfolio_allocation[0]
+# print(percent_bonds)
 percent_crypto = portfolio_allocation[2]
+# print(percent_crypto)
 
 # Calculate the amount of money the client has in stocks, bonds, and cryptocurrency
 stock_amt = percent_stocks*info[3]
@@ -143,49 +146,56 @@ cumulative_returns = MC_sim.summarize_cumulative_return()
 mean_return = cumulative_returns['mean']
 # print(mean_return)
 
-
 # Set the years until retirement return as a variable to be used in future calculations
 years_to_retirement = float(retirement_age)-float(current_age)
 # print(years_to_retirement)
 
-# Set retirement goal to get the present value of the user's retirement needs using the expected mean returns
-pv_retirement_goal = retirement_goal/(1+mean_return)**years_to_retirement
-# print(pv_retirement_goal)
-
-# Calculate the amount of money the user will need to contribute on a yearly basis
-yearly_input = pv_retirement_goal/years_to_retirement
-# print(yearly_input)
-
+# Calculate the std dev
 std_dev = cumulative_returns['std']
 
+# Set qqq close as a variable
 qqq_close = prices_df['QQQ']['close']
 
+# Set qqq returns as a variable
 stock_daily_returns = qqq_close.pct_change().dropna()
 
+# Calate cumulative returns
 stock_cumulative_returns = (1 + stock_daily_returns).cumprod()
 
+# Calculate std dev
 stock_std_dev = stock_cumulative_returns.std()
 
+# Calculate annualized std dev
 annualized_stock_std_dev = stock_std_dev * np.sqrt(252)
 
+# Calculate avg annual stock returns
 avg_annual_stock_returns = stock_daily_returns.mean()*252
 
+# Calculate stock sharpe ratio
 stock_sharpe_ratio = avg_annual_stock_returns/annualized_stock_std_dev
 
+# Set the close price of agg as a variable
 agg_close = prices_df['AGG']['close']
 
+# Calculate the daily returns of bonds
 bond_daily_returns = agg_close.pct_change().dropna()
 
+# Calculate the cumulative returns of bonds
 bond_cumulative_returns = (1 + bond_daily_returns).cumprod()
 
+# Calculate std dev
 bond_std_dev = bond_cumulative_returns.std()
 
+# Calculate annualized std dev
 annualized_bond_std_dev = bond_std_dev * np.sqrt(252)
 
+# Calculate avg annual bond returns
 avg_annual_bond_returns = bond_daily_returns.mean()*252
 
+# Calculate bond sharpe ratio
 bond_sharpe_ratio = avg_annual_bond_returns/annualized_bond_std_dev
 
+# Calculate the sharpe ratio of the entire portfolio
 portfolio_sharpe_ratio = (stock_weight*stock_sharpe_ratio)+(bond_weight*bond_sharpe_ratio)
 
 # Calculate the amount of BTC owned if it was purchased today
@@ -194,7 +204,19 @@ btc_owned = btc_price/btc_amt
 # Set the expected return for BTC (historical data would suggest a much higher return, however we are unsure if those returns are sustainable and it would be irresponsible to include returns that high in a retirement equation)
 btc_expected_return = .25
 
-print(f"""In order to retire in {int(retirement_age)-int(current_age)} years, you will need an additional ${retirement_goal}. Your portfolio is expected to return {mean_return:.2f}
+# Calculate entire portfolio return
+portfolio_mean_return = (mean_return-1)*(percent_stocks+percent_bonds)+btc_expected_return*percent_crypto
+# print(percent_stocks,percent_bonds,percent_crypto,mean_return,btc_expected_return)
+
+# Set retirement goal to get the present value of the user's retirement needs using the expected mean returns
+pv_retirement_goal = retirement_goal/(1+portfolio_mean_return)**years_to_retirement
+# print(pv_retirement_goal)
+
+# Calculate the amount of money the user will need to contribute on a yearly basis
+yearly_input = pv_retirement_goal/years_to_retirement
+# print(yearly_input)
+
+print(f"""In order to retire in {years_to_retirement} years, you will need an additional ${retirement_goal}. Your portfolio is expected to return {portfolio_mean_return:.2f}
 every year.  Given this expected return, you will need to contribute {yearly_input:.2f} every year in order to retire on time.""")
 
 
