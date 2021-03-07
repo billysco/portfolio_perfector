@@ -15,7 +15,7 @@ This is a python application. The CLI portion is written in VS Code, and the res
 
 ## Technologies
 
-The application is written using Pandas
+The application is written using Jupyter lab
 
 The following packages are used:
 
